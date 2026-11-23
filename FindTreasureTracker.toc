@@ -1,9 +1,12 @@
 ## Interface: 16001
 ## Title: Find Treasure Tracker
-## Notes: Tracks Find Treasure (2481) chest stats and bonus loot alerts.
-## Author: You
-## Version: 0.4
+## Notes: Tracks Find Treasure (2481) chest slot procs, Auction House & vendor loot values, and bonus loot alerts.
+## Author: GlitchShroud
+## Version: 1.0.0
 ## SavedVariables: FindTreasureDB
 ## Category: Professions
+## IconTexture: Interface\Icons\INV_Misc_Map_01
+## X-Website: https://github.com/GlitchShroud/WoW-Forever-FindTreasureTracker
+## X-Donate: https://buymeacoffee.com/pbg88
 
 FindTreasureTracker.lua
