@@ -113,7 +113,7 @@ local TIER_STYLES = {
 }
 
 local mainFrame = CreateFrame("Frame", "FindTreasureMainFrame")
-mainFrame:SetSize(560, 595)
+mainFrame:SetSize(560, 625)
 
 local function OpenAddonSettings()
     if Settings and Settings.OpenToCategory and SettingsCategoryID then
@@ -459,11 +459,19 @@ local function InitDB()
     if type(FindTreasureDB.enableLegendaryFeature) ~= "boolean" then
         FindTreasureDB.enableLegendaryFeature = true
     end
+    if type(FindTreasureDB.allowInactiveAuraProcs) ~= "boolean" then
+        FindTreasureDB.allowInactiveAuraProcs = false
+    end
 end
 
 local function IsLegendaryFeatureEnabled()
     InitDB()
     return FindTreasureDB.enableLegendaryFeature ~= false
+end
+
+local function IsInactiveAuraProcsEnabled()
+    InitDB()
+    return FindTreasureDB.allowInactiveAuraProcs == true
 end
 
 local function PlaySoundFileCandidates(candidates)
@@ -540,6 +548,14 @@ local function HasFindTreasureActive()
         return C_UnitAuras.GetPlayerAuraBySpellID(FIND_TREASURE_ID) ~= nil
     end
     return false
+end
+
+local function IsPlayerDwarf()
+    if not UnitRace then
+        return true
+    end
+    local race = UnitRace("player")
+    return race == "Dwarf"
 end
 
 local function GetSpellNameSafe(spellID)
@@ -863,10 +879,12 @@ local function ResetStatsKeepAngle()
     InitDB()
     local savedAngle = FindTreasureDB.minimapAngle
     local savedFeature = IsLegendaryFeatureEnabled()
+    local savedInactiveProcs = IsInactiveAuraProcsEnabled()
     FindTreasureDB = nil
     InitDB()
     FindTreasureDB.minimapAngle = savedAngle
     FindTreasureDB.enableLegendaryFeature = savedFeature
+    FindTreasureDB.allowInactiveAuraProcs = savedInactiveProcs
     if SyncSettingsControls then
         SyncSettingsControls()
     end
@@ -874,7 +892,7 @@ local function ResetStatsKeepAngle()
 end
 
 StaticPopupDialogs["FTT_CONFIRM_RESET_STATS"] = {
-    text = "Are you sure you want to reset all Find Treasure Tracker stats and chest logs?\n\nYour minimap position and Legendary Feature toggle will be kept.",
+    text = "Are you sure you want to reset all Find Treasure Tracker stats and chest logs?\n\nYour minimap position and settings toggles will be kept.",
     button1 = "Reset Stats",
     button2 = CANCEL,
     OnAccept = function()
@@ -971,7 +989,7 @@ ApplyCoinTexture(icon, minimapBtn, TRACKER_ICON_TEXTURE, 0.08, 0.92)
 
 local function UpdateTrackerIconState()
     if not icon then return end
-    if HasFindTreasureActive() then
+    if HasFindTreasureActive() or not IsPlayerDwarf() then
         icon:SetVertexColor(1.0, 1.0, 1.0)
     else
         icon:SetVertexColor(1.0, 0.32, 0.32)
@@ -1106,9 +1124,51 @@ if featureCheckLabel then
     featureCheckLabel:SetFontObject("GameFontHighlight")
 end
 
+featureCheckBtn:SetScript("OnClick", function(self)
+    InitDB()
+    FindTreasureDB.enableLegendaryFeature = self:GetChecked() and true or false
+end)
+
+featureCheckBtn:SetScript("OnEnter", function(self)
+    GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+    GameTooltip:SetText("Legendary Feature", 1, 0.82, 0)
+    GameTooltip:AddLine("Uncheck to disable the Feature sound and coin fountain on Legendary finds while keeping the top screen glow.", 1, 1, 1, true)
+    GameTooltip:Show()
+end)
+
+featureCheckBtn:SetScript("OnLeave", function()
+    GameTooltip:Hide()
+end)
+
+local inactiveProcCheckBtn = CreateFrame("CheckButton", "FindTreasureInactiveProcToggle", mainFrame, "UICheckButtonTemplate")
+inactiveProcCheckBtn:SetPoint("TOPLEFT", featureCheckBtn, "BOTTOMLEFT", 0, -4)
+inactiveProcCheckBtn:SetSize(26, 26)
+
+local inactiveProcCheckLabel = inactiveProcCheckBtn.text or _G[inactiveProcCheckBtn:GetName() .. "Text"]
+if inactiveProcCheckLabel then
+    inactiveProcCheckLabel:SetText("Allow Procs When Find Treasure Is Inactive")
+    inactiveProcCheckLabel:SetFontObject("GameFontHighlight")
+end
+
+inactiveProcCheckBtn:SetScript("OnClick", function(self)
+    InitDB()
+    FindTreasureDB.allowInactiveAuraProcs = self:GetChecked() and true or false
+end)
+
+inactiveProcCheckBtn:SetScript("OnEnter", function(self)
+    GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+    GameTooltip:SetText("Inactive Aura Procs", 1, 0.82, 0)
+    GameTooltip:AddLine("Trigger bonus-slot proc alerts and effects even when Find Treasure is not active.", 1, 1, 1, true)
+    GameTooltip:Show()
+end)
+
+inactiveProcCheckBtn:SetScript("OnLeave", function()
+    GameTooltip:Hide()
+end)
+
 local shareBtn = CreateFrame("Button", nil, mainFrame, "UIPanelButtonTemplate")
 shareBtn:SetSize(140, 24)
-shareBtn:SetPoint("TOPLEFT", featureCheckBtn, "BOTTOMLEFT", 2, -16)
+shareBtn:SetPoint("TOPLEFT", inactiveProcCheckBtn, "BOTTOMLEFT", 2, -16)
 shareBtn:SetText("Share Stats")
 shareBtn:SetScript("OnClick", function()
     ShareActiveStatsToSay()
@@ -1135,22 +1195,6 @@ debugBtn:SetScript("OnEnter", function(self)
     GameTooltip:Show()
 end)
 debugBtn:SetScript("OnLeave", function()
-    GameTooltip:Hide()
-end)
-
-featureCheckBtn:SetScript("OnClick", function(self)
-    InitDB()
-    FindTreasureDB.enableLegendaryFeature = self:GetChecked() and true or false
-end)
-
-featureCheckBtn:SetScript("OnEnter", function(self)
-    GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-    GameTooltip:SetText("Legendary Feature", 1, 0.82, 0)
-    GameTooltip:AddLine("Uncheck to disable the Feature sound and coin fountain on Legendary finds while keeping the top screen glow.", 1, 1, 1, true)
-    GameTooltip:Show()
-end)
-
-featureCheckBtn:SetScript("OnLeave", function()
     GameTooltip:Hide()
 end)
 
@@ -1335,6 +1379,9 @@ end
 SyncSettingsControls = function()
     InitDB()
     featureCheckBtn:SetChecked(IsLegendaryFeatureEnabled())
+    if inactiveProcCheckBtn then
+        inactiveProcCheckBtn:SetChecked(IsInactiveAuraProcsEnabled())
+    end
     if debugBtn then
         debugBtn:SetText(debugEvents and "Debug: ON" or "Debug")
     end
@@ -1369,6 +1416,7 @@ end
 --------------------------------------------------------------------------------
 local function WarnIfFindTreasureInactive(targetLabel)
     if remindedInactiveThisChest then return end
+    if not IsPlayerDwarf() then return end
     UpdateTrackerIconState()
     if not HasFindTreasureActive() then
         remindedInactiveThisChest = true
@@ -1492,7 +1540,7 @@ local function EvaluateChestLoot()
         items = loggedItems,
     })
 
-    if hasAura and isProc then
+    if (hasAura or IsInactiveAuraProcsEnabled()) and isProc then
         TriggerSlotProcAlert(bucket, tierKey, numSlots, maxExpected, isNewRecord)
     end
 
