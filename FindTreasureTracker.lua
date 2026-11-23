@@ -708,13 +708,14 @@ local function FormatMostValuableDropText(b)
 end
 
 local function ClassifyChestBySlots(numSlots, maxExpected)
-    if numSlots >= 7 then
+    local bonus = numSlots - (maxExpected or 4)
+    if bonus >= 4 then
         return "legendary", true
-    elseif numSlots == 6 then
+    elseif bonus == 3 then
         return "epic", true
-    elseif numSlots == 5 and maxExpected <= 4 then
+    elseif bonus == 2 then
         return "rare", true
-    elseif numSlots > maxExpected then
+    elseif bonus == 1 then
         return "uncommon", true
     else
         return "common", false
@@ -1090,7 +1091,7 @@ howItWorksText:SetWidth(520)
 howItWorksText:SetJustifyH("LEFT")
 howItWorksText:SetSpacing(6)
 howItWorksText:SetText(
-    "• Chest Rarity Tiers: Opened chests are grouped by slot count into Legendary (7+ slots), Epic (6 slots), Rare (5 slots when expected is 4 or fewer), and Uncommon (more slots than expected).\n\n" ..
+    "• Chest Rarity Tiers: Opened chests are grouped by bonus loot slots above expected into |cff1eff00Uncommon|r (+1 slot), |cff0070ddRare|r (+2 slots), |cffa335eeEpic|r (+3 slots), and |cffff8000Legendary|r (+4 or more slots).\n\n" ..
     "• Find Treasure Aura Check: When you attempt to open a chest without Find Treasure active, the minimap icon tints red and a Raid Warning + Help sound reminds you to enable it.\n\n" ..
     "• Value & Proc Tracking: Keeps separate records for Active vs. Inactive runs, tracking most valuable drop (AH or Vendor), coin and item vendor value, auction house value (when supported by a price addon), highest slot count seen, and proc rate."
 )
