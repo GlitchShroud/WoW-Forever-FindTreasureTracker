@@ -1,0 +1,9 @@
+## Interface: 16001
+## Title: Find Treasure Tracker
+## Notes: Tracks Find Treasure (2481) chest stats and bonus loot alerts.
+## Author: You
+## Version: 0.4
+## SavedVariables: FindTreasureDB
+## Category: Professions
+
+FindTreasureTracker.lua
